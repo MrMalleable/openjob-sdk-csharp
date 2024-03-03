@@ -1,0 +1,6 @@
+@openjob_sdk_csharp_agent_HostAddress = http://localhost:5193
+
+GET {{openjob_sdk_csharp_agent_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
