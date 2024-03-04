@@ -37,7 +37,7 @@ namespace openjob_sdk_csharp_agent.Controllers
         [HttpPost("/stop")]
         public JsonResult Stop(AgentStopRequest request)
         {
-            return Json(ApiResponseHelper<string>.BuildSuccessResponse("执行任务实例"));
+            return Json(ApiResponseHelper<string>.BuildSuccessResponse("终止任务实例"));
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace openjob_sdk_csharp_agent.Controllers
         [HttpPost("/check")]
         public JsonResult Check(AgentCheckRequest request)
         {
-            return Json(ApiResponseHelper<string>.BuildSuccessResponse("执行任务实例"));
+            return Json(ApiResponseHelper<string>.BuildSuccessResponse("任务实例检查"));
         }
     }
 }

@@ -45,11 +45,11 @@ namespace openjob_sdk_csharp_agent.config
         /// </summary>
         public string? Token { get; set; }
 
-        public static OpenJobConfig? GetConfiguration(IConfiguration configuration)
+        public static void GetConfiguration(IConfiguration configuration, OpenJobConfig config)
         {
             if(configuration == null)
             {
-                return null;
+                return;
             }
 
             string? clusterHost = configuration.GetValue<string>("OpenJob:ClusterHost");
@@ -69,7 +69,6 @@ namespace openjob_sdk_csharp_agent.config
             string? version = configuration.GetValue<string>("OpenJob:Version");
             string? token = configuration.GetValue<string>("OpenJob:Token");
 
-            OpenJobConfig config = new OpenJobConfig();
             config.ClusterHost = clusterHost;
             config.HeartBeatInterval = heartBeatInterval;
             config.Host = host;
@@ -79,7 +78,6 @@ namespace openjob_sdk_csharp_agent.config
             config.Version = version;
             config.Token = token;
 
-            return config;
         }
     }
 }

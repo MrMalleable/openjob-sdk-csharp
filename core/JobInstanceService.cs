@@ -19,10 +19,10 @@ namespace openjob_sdk_csharp_agent.core
         {
             this._logger = _logger;
             this._openJobConfig = openJobConfig;
-            this._clusterApiClient = new ClusterApiClient(_clusterLogger, this._openJobConfig.Host, 
+            this._clusterApiClient = new ClusterApiClient(_clusterLogger, this._openJobConfig.ClusterHost, 
                 this._openJobConfig.Port);
             // 打印日志
-            this._logger.LogInformation("Initial Success!");
+            this._logger.LogInformation("JobInstanceService Initial Success!");
         }
 
         /// <summary>
@@ -46,6 +46,10 @@ namespace openjob_sdk_csharp_agent.core
                 _openJobConfig.Version);
         }
 
+        /// <summary>
+        /// 返回当前正在执行的定时任务实例id
+        /// </summary>
+        /// <returns></returns>
         public IList<long> GetJobInstanceIds()
         {
             // todo

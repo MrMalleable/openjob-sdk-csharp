@@ -5,13 +5,13 @@
         // 上线客户端接口
         public static readonly string START_API = "/openapi/worker/start";
 
-        // 上线客户端接口
+        // 客户端心跳接口
         public static readonly string HEARTBEAT_API = "/openapi/worker/heartbeat";
 
-        // 上线客户端接口
+        // 下线客户端接口
         public static readonly string STOP_API = "/openapi/worker/stop";
 
-        // 上线客户端接口
+        // 上传任务日志接口
         public static readonly string UPLOAD_LOG_API = "/openapi/task-log/batch-add";
 
         // 上报实例状态接口

@@ -1,6 +1,5 @@
-using Newtonsoft.Json;
-using openjob_sdk_csharp_agent.common.helper;
 using openjob_sdk_csharp_agent.config;
+using openjob_sdk_csharp_agent.core;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,9 +10,14 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+OpenJobConfig? openJobConfig = new OpenJobConfig();
+builder.Services.AddSingleton(openJobConfig);
+builder.Services.AddSingleton<JobInstanceService>();
+builder.Services.AddHostedService<HeartBeatService>();
+
 var app = builder.Build();
 
-OpenJobConfig? openJobConfig = OpenJobConfig.GetConfiguration(app.Configuration);
+OpenJobConfig.GetConfiguration(app.Configuration, openJobConfig);
 
 if (openJobConfig == null)
 {
@@ -59,6 +63,22 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 
 app.MapControllers();
+
+// 创建一个CancellationTokenSource用于取消操作
+var cts = new CancellationTokenSource();
+
+// 订阅Console.CancelKeyPress事件
+Console.CancelKeyPress += async (sender, e) =>
+{
+    // 防止程序终止
+    e.Cancel = true;
+
+    var heartBeatService = app.Services.GetService<HeartBeatService>();
+
+    Console.WriteLine(heartBeatService);
+    // 取消操作
+    cts.Cancel();
+};
 
 // 指定端口启动
 app.Urls.Add("http://*:" + openJobConfig?.Port?? "25588");

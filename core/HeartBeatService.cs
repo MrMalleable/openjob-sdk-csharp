@@ -1,15 +1,16 @@
-﻿namespace openjob_sdk_csharp_agent.core
+﻿
+namespace openjob_sdk_csharp_agent.core
 {
     /// <summary>
     /// 心跳线程
     /// </summary>
-    public class HeartBeatThread
+    public class HeartBeatService:BackgroundService
     {
-        private ILogger<HeartBeatThread> _logger;
+        private ILogger<HeartBeatService> _logger;
 
         private JobInstanceService _jobInstanceService;
 
-        public HeartBeatThread(ILogger<HeartBeatThread> _logger, JobInstanceService jobInstanceService)
+        public HeartBeatService(ILogger<HeartBeatService> _logger, JobInstanceService jobInstanceService)
         {
             this._logger = _logger;
             this._jobInstanceService = jobInstanceService;
@@ -26,10 +27,11 @@
             _isRunning = true;
             while (true)
             {
-                if (_isRunning)
+                if (!_isRunning)
                 {
                     break;
                 }
+
                 int heartBeatInternal = _jobInstanceService.GetConfiguration().HeartBeatInterval ?? 5;
                 // 向集群发送心跳
                 _jobInstanceService.SendHeartBeat();
@@ -46,6 +48,27 @@
         {
             _isRunning = false;
             _logger.LogInformation("HeartBeatThread is stopped!");
+        }
+
+        /// <summary>
+        /// 实现定时任务逻辑
+        /// </summary>
+        /// <param name="stoppingToken"></param>
+        /// <returns></returns>
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            Start();
+            return Task.CompletedTask;
+        }
+
+        public override Task StopAsync(CancellationToken cancellationToken)
+        {
+            // 停止后台服务时的自定义逻辑
+            Console.WriteLine("StopAsync called...");
+
+            Stop();
+
+            return base.StopAsync(cancellationToken);
         }
     }
 }

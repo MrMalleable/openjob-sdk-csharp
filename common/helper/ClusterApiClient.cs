@@ -26,6 +26,7 @@ namespace openjob_sdk_csharp_agent.common.helper
 
         public ClusterApiClient(ILogger<ClusterApiClient> _logger, string? host, string? token)
         {
+            Console.WriteLine("ClusterApiClient初始化");
             this._logger = _logger;
             this.host = host;
             httpClient = new HttpClient();
@@ -56,7 +57,7 @@ namespace openjob_sdk_csharp_agent.common.helper
                     version,
                     workerKey
                 };
-                var response = PostJson(ClusterApiConstant.STOP_API, requestBody);
+                var response = PostJson(ClusterApiConstant.START_API, requestBody);
                 return JsonConvert.DeserializeObject<OpenjobApiResponse<OpenjobApiClusterStartResponse>>(response);
             }
             catch (Exception ex)
@@ -94,7 +95,7 @@ namespace openjob_sdk_csharp_agent.common.helper
                     runningJobInstanceIds,
                     version
                 };
-                var response = PostJson(ClusterApiConstant.STOP_API, requestBody);
+                var response = PostJson(ClusterApiConstant.HEARTBEAT_API, requestBody);
                 return JsonConvert.DeserializeObject<OpenjobApiResponse<OpenjobApiClusterHeartBeatResponse>>(response);
             }
             catch (Exception ex)
@@ -177,7 +178,7 @@ namespace openjob_sdk_csharp_agent.common.helper
         {
             try
             {
-                var response = PostJson(ClusterApiConstant.UPLOAD_LOG_API, request);
+                var response = PostJson(ClusterApiConstant.HANDLE_TASKS_API, request);
                 return JsonConvert.DeserializeObject<OpenjobApiResponse<object>>(response);
             }
             catch (Exception ex)
@@ -196,7 +197,7 @@ namespace openjob_sdk_csharp_agent.common.helper
         {
             try
             {
-                var response = PostJson(ClusterApiConstant.UPLOAD_LOG_API, request);
+                var response = PostJson(ClusterApiConstant.HANDLE_STATUS_API, request);
                 return JsonConvert.DeserializeObject<OpenjobApiResponse<object>>(response);
             }
             catch (Exception ex)
@@ -210,6 +211,7 @@ namespace openjob_sdk_csharp_agent.common.helper
         private string PostJson(string url, object body)
         {
             var requestUrl = this.host + url;
+            Console.WriteLine("请求地址为：" + requestUrl);
             var content = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json");
             var response = httpClient.PostAsync(requestUrl, content).Result;
             var resultStr = response.Content.ReadAsStringAsync().Result;
