@@ -16,14 +16,14 @@ namespace openjob_sdk_csharp_agent.core
     {
         private readonly ILogger<JobInstanceService> _logger;
         private readonly OpenJobConfig _openJobConfig;
-        private readonly ClusterApiClient _clusterApiClient;
+        private readonly IClusterApiClient _clusterApiClient;
         private readonly JobProcessorRegistry _processorRegistry;
         private readonly ConcurrentDictionary<long, RunningJobInstance> _runningInstances = new();
 
         public JobInstanceService(
             ILogger<JobInstanceService> logger,
             IOptions<OpenJobConfig> options,
-            ClusterApiClient clusterApiClient,
+            IClusterApiClient clusterApiClient,
             JobProcessorRegistry processorRegistry)
         {
             _logger = logger;

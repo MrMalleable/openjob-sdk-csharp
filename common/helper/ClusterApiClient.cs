@@ -12,7 +12,7 @@ namespace openjob_sdk_csharp_agent.common.helper
     /// <summary>
     /// 集群通信客户端：与 OpenJob Server OpenAPI 通信
     /// </summary>
-    public class ClusterApiClient
+    public class ClusterApiClient : IClusterApiClient
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<ClusterApiClient> _logger;

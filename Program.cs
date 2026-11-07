@@ -17,7 +17,7 @@ builder.Services.PostConfigure<OpenJobConfig>(config => config.Normalize());
 builder.Services.AddSingleton<JobProcessorRegistry>();
 builder.Services.AddSingleton<IJobProcessor, DefaultEchoProcessor>();
 builder.Services.AddSingleton<JobInstanceService>();
-builder.Services.AddHttpClient<ClusterApiClient>((sp, client) =>
+builder.Services.AddHttpClient<IClusterApiClient, ClusterApiClient>((sp, client) =>
 {
     var config = sp.GetRequiredService<IOptions<OpenJobConfig>>().Value;
     if (!string.IsNullOrWhiteSpace(config.ClusterHost))

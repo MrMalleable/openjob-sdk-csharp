@@ -35,4 +35,18 @@ public class OpenJobConfigTests
         config.Normalize();
         Assert.Equal("ClusterHost is not configured", config.Validate());
     }
+
+    [Fact]
+    public void Validate_ShouldFail_WhenTokenMissing()
+    {
+        var config = new OpenJobConfig
+        {
+            ClusterHost = "http://localhost:8080",
+            AppName = "demo",
+            Host = "127.0.0.1",
+            Port = 8081
+        };
+        config.Normalize();
+        Assert.Equal("Token is not configured", config.Validate());
+    }
 }
