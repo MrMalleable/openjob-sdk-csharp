@@ -1,74 +1,89 @@
-﻿
+﻿using Microsoft.Extensions.Options;
+using openjob_sdk_csharp_agent.config;
+
 namespace openjob_sdk_csharp_agent.core
 {
     /// <summary>
-    /// 心跳线程
+    /// Worker 生命周期：注册、心跳、优雅下线
     /// </summary>
-    public class HeartBeatService:BackgroundService
+    public class HeartBeatService : BackgroundService
     {
-        private ILogger<HeartBeatService> _logger;
+        private readonly ILogger<HeartBeatService> _logger;
+        private readonly JobInstanceService _jobInstanceService;
+        private readonly OpenJobConfig _config;
 
-        private JobInstanceService _jobInstanceService;
-
-        public HeartBeatService(ILogger<HeartBeatService> _logger, JobInstanceService jobInstanceService)
+        public HeartBeatService(
+            ILogger<HeartBeatService> logger,
+            JobInstanceService jobInstanceService,
+            IOptions<OpenJobConfig> options)
         {
-            this._logger = _logger;
-            this._jobInstanceService = jobInstanceService;
+            _logger = logger;
+            _jobInstanceService = jobInstanceService;
+            _config = options.Value;
         }
 
-        // 控制线程是否停止
-        private bool _isRunning = false;
-
-        /// <summary>
-        /// 开启心跳线程
-        /// </summary>
-        public void Start()
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _isRunning = true;
-            while (true)
+            var registered = false;
+            while (!stoppingToken.IsCancellationRequested && !registered)
             {
-                if (!_isRunning)
+                try
+                {
+                    registered = await _jobInstanceService.RegisterOnAsync(stoppingToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                if (!registered)
+                {
+                    _logger.LogWarning("Worker register retry in 3 seconds");
+                    try
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(3), stoppingToken).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        return;
+                    }
+                }
+            }
+
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                try
+                {
+                    await _jobInstanceService.SendHeartBeatAsync(stoppingToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {
                     break;
                 }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Heartbeat loop error");
+                }
 
-                int heartBeatInternal = _jobInstanceService.GetConfiguration().HeartBeatInterval ?? 5;
-                // 向集群发送心跳
-                _jobInstanceService.SendHeartBeat();
-                
-                Thread.Sleep(1000 * heartBeatInternal);
+                try
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(_config.HeartBeatInterval), stoppingToken)
+                        .ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
             }
-            _logger.LogInformation("HeartBeatThread is ended!");
         }
 
-        /// <summary>
-        /// 停止线程
-        /// </summary>
-        public void Stop()
+        public override async Task StopAsync(CancellationToken cancellationToken)
         {
-            _isRunning = false;
-            _logger.LogInformation("HeartBeatThread is stopped!");
-        }
-
-        /// <summary>
-        /// 实现定时任务逻辑
-        /// </summary>
-        /// <param name="stoppingToken"></param>
-        /// <returns></returns>
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            Start();
-            return Task.CompletedTask;
-        }
-
-        public override Task StopAsync(CancellationToken cancellationToken)
-        {
-            // 停止后台服务时的自定义逻辑
-            Console.WriteLine("StopAsync called...");
-
-            Stop();
-
-            return base.StopAsync(cancellationToken);
+            _logger.LogInformation("HeartBeatService stopping, unregister worker...");
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            cts.CancelAfter(TimeSpan.FromSeconds(5));
+            await _jobInstanceService.RegisterOffAsync(cts.Token).ConfigureAwait(false);
+            await base.StopAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

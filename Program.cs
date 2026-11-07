@@ -1,86 +1,60 @@
+using Microsoft.Extensions.Options;
+using openjob_sdk_csharp_agent.common.helper;
 using openjob_sdk_csharp_agent.config;
 using openjob_sdk_csharp_agent.core;
+using openjob_sdk_csharp_agent.core.processor;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddControllers()
+    .AddNewtonsoftJson();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-OpenJobConfig? openJobConfig = new OpenJobConfig();
-builder.Services.AddSingleton(openJobConfig);
+builder.Services.Configure<OpenJobConfig>(builder.Configuration.GetSection(OpenJobConfig.SectionName));
+builder.Services.PostConfigure<OpenJobConfig>(config => config.Normalize());
+
+builder.Services.AddSingleton<JobProcessorRegistry>();
+builder.Services.AddSingleton<IJobProcessor, DefaultEchoProcessor>();
 builder.Services.AddSingleton<JobInstanceService>();
+builder.Services.AddHttpClient<IClusterApiClient, ClusterApiClient>((sp, client) =>
+{
+    var config = sp.GetRequiredService<IOptions<OpenJobConfig>>().Value;
+    if (!string.IsNullOrWhiteSpace(config.ClusterHost))
+    {
+        client.BaseAddress = new Uri(config.ClusterHost.TrimEnd('/') + "/");
+    }
+
+    if (!string.IsNullOrWhiteSpace(config.Token))
+    {
+        client.DefaultRequestHeaders.Add("token", config.Token);
+    }
+
+    client.Timeout = TimeSpan.FromSeconds(Math.Max(1, config.HttpTimeoutSeconds));
+});
 builder.Services.AddHostedService<HeartBeatService>();
 
 var app = builder.Build();
 
-OpenJobConfig.GetConfiguration(app.Configuration, openJobConfig);
-
-if (openJobConfig == null)
+var openJobConfig = app.Services.GetRequiredService<IOptions<OpenJobConfig>>().Value;
+var configError = openJobConfig.Validate();
+if (configError != null)
 {
-    app.Logger.LogError("The configuration of Openjob is not found, application is not started");
+    app.Logger.LogError("{Error}, application is not started", configError);
     return;
 }
 
-// 集群地址必须配置，否则不启动服务
-if (string.IsNullOrEmpty(openJobConfig.ClusterHost))
-{
-    app.Logger.LogError("ClusterHost is not configured, application is not started");
-    return;
-}
-
-// 请求Token必须配置，否则不启动服务
-if (string.IsNullOrEmpty(openJobConfig.AppName))
-{
-    app.Logger.LogError("AppName is not configured, application is not started");
-    return;
-}
-
-// 如果请求Token必须配置，否则不启动服务
-if (string.IsNullOrEmpty(openJobConfig.Token))
-{
-    app.Logger.LogError("Token is not configured, application is not started");
-    return;
-}
-
-// 如果IP没有配置并且本地没有获取到，则不启动服务
-if (string.IsNullOrEmpty(openJobConfig.Host))
-{
-    app.Logger.LogError("GetLocalIp error, application is not started");
-    return;
-}
-
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseAuthorization();
-
 app.MapControllers();
+app.Urls.Add($"http://*:{openJobConfig.Port}");
 
-// 创建一个CancellationTokenSource用于取消操作
-var cts = new CancellationTokenSource();
-
-// 订阅Console.CancelKeyPress事件
-Console.CancelKeyPress += async (sender, e) =>
-{
-    // 防止程序终止
-    e.Cancel = true;
-
-    var heartBeatService = app.Services.GetService<HeartBeatService>();
-
-    Console.WriteLine(heartBeatService);
-    // 取消操作
-    cts.Cancel();
-};
-
-// 指定端口启动
-app.Urls.Add("http://*:" + openJobConfig?.Port?? "25588");
+app.Logger.LogInformation(
+    "OpenJob worker starting. address={Address}, appName={AppName}, cluster={ClusterHost}",
+    openJobConfig.Address, openJobConfig.AppName, openJobConfig.ClusterHost);
 
 app.Run();

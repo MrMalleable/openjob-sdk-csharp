@@ -5,6 +5,10 @@ VisualStudioVersion = 17.9.34622.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "openjob-sdk-csharp-agent", "openjob-sdk-csharp-agent.csproj", "{4368DCDE-9CFB-4069-AF84-97EEBBB0C5EB}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{F2D1AD47-5121-4117-8D01-3196C76C0D34}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "openjob-sdk-csharp-agent.Tests", "tests\openjob-sdk-csharp-agent.Tests\openjob-sdk-csharp-agent.Tests.csproj", "{68082FC5-2331-45D5-8B7F-FCE0B3B4B881}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,11 +19,18 @@ Global
 		{4368DCDE-9CFB-4069-AF84-97EEBBB0C5EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4368DCDE-9CFB-4069-AF84-97EEBBB0C5EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4368DCDE-9CFB-4069-AF84-97EEBBB0C5EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68082FC5-2331-45D5-8B7F-FCE0B3B4B881}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68082FC5-2331-45D5-8B7F-FCE0B3B4B881}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68082FC5-2331-45D5-8B7F-FCE0B3B4B881}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68082FC5-2331-45D5-8B7F-FCE0B3B4B881}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8158AB18-11FD-4412-8EAD-D1579E263543}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{68082FC5-2331-45D5-8B7F-FCE0B3B4B881} = {F2D1AD47-5121-4117-8D01-3196C76C0D34}
 	EndGlobalSection
 EndGlobal

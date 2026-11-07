@@ -1,4 +1,6 @@
-﻿namespace openjob_sdk_csharp_agent.common.response
+﻿using Newtonsoft.Json;
+
+namespace openjob_sdk_csharp_agent.common.response
 {
     /// <summary>
     /// 客户端心跳接口的返回响应实体类
@@ -8,16 +10,19 @@
         /// <summary>
         /// 集群通信版本号
         /// </summary>
-        public long? clusterVersion { get; set; }
+        [JsonProperty("clusterVersion")]
+        public long? ClusterVersion { get; set; }
 
         /// <summary>
         /// 集群延时任务版本号
         /// </summary>
-        public long? clusterDelayVersion { get; set; }
+        [JsonProperty("clusterDelayVersion")]
+        public long? ClusterDelayVersion { get; set; }
 
         /// <summary>
         /// 应用所有在线客户端(包含当前客户端)
         /// </summary>
-        public IList<string>? WorkAddressList { get; set; }
+        [JsonProperty("workerAddressList")]
+        public IList<string>? WorkerAddressList { get; set; }
     }
 }
